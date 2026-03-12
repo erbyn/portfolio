@@ -317,9 +317,6 @@ function setLang(l){
 const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add("visible"),i*80);obs.unobserve(e.target)}})},{threshold:.1});
 document.querySelectorAll(".reveal").forEach(el=>obs.observe(el));
 
-// ── FORMSPREE ────────────────────────────────────────────────────
-// ⚠️  Замени на свой endpoint с formspree.io
-const FORMSPREE_URL="https://formspree.io/f/xqeyqvdn";
 
 async function handleSubmit(e){
   e.preventDefault();
@@ -329,9 +326,17 @@ async function handleSubmit(e){
   span.textContent="...";
   btn.style.opacity=".7";
   btn.disabled=true;
+
+  const formData=new FormData(form);
+  formData.append("access_key","1bbc0a3b-73ee-4e60-980f-6cfa7a0b5cdf");
+
   try{
-    const res=await fetch(FORMSPREE_URL,{method:"POST",body:new FormData(form),headers:{"Accept":"application/json"}});
-    if(res.ok){
+    const res=await fetch("https://api.web3forms.com/submit",{
+      method:"POST",
+      body:formData
+    });
+    const data=await res.json();
+    if(data.success){
       span.textContent=T[lang].form_success;
       btn.style.background="var(--green)";
       btn.style.opacity="1";
@@ -339,12 +344,11 @@ async function handleSubmit(e){
       form.reset();
       setTimeout(()=>{span.textContent=T[lang].form_send;btn.style.background=""},4000);
     }else{
-      const d=await res.json();
-      span.textContent="⚠ "+(d&&d.errors&&d.errors[0]?d.errors[0].message:"Error");
+      span.textContent="\u26a0 "+data.message;
       btn.style.opacity="1";btn.disabled=false;
     }
   }catch(err){
-    span.textContent="⚠ Network error";
+    span.textContent="\u26a0 Network error";
     btn.style.opacity="1";btn.disabled=false;
   }
 }
